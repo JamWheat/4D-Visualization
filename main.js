@@ -1,134 +1,193 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-console.log(ctx);
+ctx.lineCap = "round";
+console.log(ctx)
 
-class Vector2 {
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
+const xSlider = document.getElementById("xRot");
+const ySlider = document.getElementById("yRot");
+const zSlider = document.getElementById("zRot");
+
+const xySlider = document.getElementById("xyRot");
+const yzSlider = document.getElementById("yzRot");
+const xzSlider = document.getElementById("xzRot");
+const xwSlider = document.getElementById("xwRot");
+const ywSlider = document.getElementById("ywRot");
+const zwSlider = document.getElementById("zwRot");
+
+const rotationThrottle = .002;
+const edgeLangth = 175;
+
+const projSlider = document.getElementById("proj");
+const projOut = document.getElementById("projOut");
+
+const camSlider = document.getElementById("cam");
+const camOut = document.getElementById("camOut");
+
+const projectionVect = [0, 0, 0];
+const surfce4d = [0, 0, 0, 0];
+
+const cameraVect = [0, 0, 0];
+const camera4d = [0, 0, 0, 0];
+
+const makeVecArray = (edge, depth) => {
+    const output = new Array(Math.pow(2, depth));
+
+    let x = edge, y = edge, z = edge, w = edge;
+    
+    for(let i = 1; i < output.length+1; i++){
+        output[i-1] = [x, y, z, w];
+        if (i%8 == 0) w *= -1;
+        if (i%4 == 0) z *= -1;
+        if (i%2 == 0) y *= -1;
+        x *= -1;
     }
+    
+    return output;
 }
 
-class Vector3{
-    constructor(x, y, z){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-}
+const vectors = makeVecArray(edgeLangth, 4);
 
-const originX = canvas.width / 2;
-const originY = canvas.height / 2;
-
-const eyeDist = 200;
-
-const objectOrigin = new Vector3(canvas.width/2, canvas.height/2, 450);
-const camaraVect = new Vector3(150, 150, 0);
-
-vectors2d = [
-    vectA = new Vector2(originX-100, originY),
-    vectB = new Vector2(originX, originY+100),
-    vectC = new Vector2(originX+100, originY+0),
-    vectD = new Vector2(originX, originY-100)
-]
-
-vectors3d = [
-    new Vector3(objectOrigin.x-100, objectOrigin.y-100, objectOrigin.z-100),
-    new Vector3(objectOrigin.x-100, objectOrigin.y+100, objectOrigin.z-100),
-    new Vector3(objectOrigin.x+100, objectOrigin.y+100, objectOrigin.z-100),
-    new Vector3(objectOrigin.x+100, objectOrigin.y-100, objectOrigin.z-100),
-    new Vector3(objectOrigin.x-100, objectOrigin.y-100, objectOrigin.z+100),
-    new Vector3(objectOrigin.x-100, objectOrigin.y+100, objectOrigin.z+100),
-    new Vector3(objectOrigin.x+100, objectOrigin.y+100, objectOrigin.z+100),
-    new Vector3(objectOrigin.x+100, objectOrigin.y-100, objectOrigin.z+100),
-]
+// vectors = [
+//     [-edgeLangth, -edgeLangth, -edgeLangth, -edgeLangth],
+//     [-edgeLangth, +edgeLangth, -edgeLangth, -edgeLangth],
+//     [+edgeLangth, +edgeLangth, -edgeLangth, -edgeLangth],
+//     [+edgeLangth, -edgeLangth, -edgeLangth, -edgeLangth],
+//     [-edgeLangth, -edgeLangth, +edgeLangth, -edgeLangth],
+//     [-edgeLangth, +edgeLangth, +edgeLangth, -edgeLangth],
+//     [+edgeLangth, +edgeLangth, +edgeLangth, -edgeLangth],
+//     [+edgeLangth, -edgeLangth, +edgeLangth, -edgeLangth],
+//     [-edgeLangth, -edgeLangth, -edgeLangth, +edgeLangth],
+//     [-edgeLangth, +edgeLangth, -edgeLangth, +edgeLangth],
+//     [+edgeLangth, +edgeLangth, -edgeLangth, +edgeLangth],
+//     [+edgeLangth, -edgeLangth, -edgeLangth, +edgeLangth],
+//     [-edgeLangth, -edgeLangth, +edgeLangth, +edgeLangth],
+//     [-edgeLangth, +edgeLangth, +edgeLangth, +edgeLangth],
+//     [+edgeLangth, +edgeLangth, +edgeLangth, +edgeLangth],
+//     [+edgeLangth, -edgeLangth, +edgeLangth, +edgeLangth]
+// ]
 
 const drawLoop = () => {
     setInterval(draw, 16)
 }
 
-const drawLine = (lineStartX, lineStartY, lineEndX, lineEndY) => {
-    ctx.beginPath();
-    ctx.moveTo(lineStartX, lineStartY);
-    ctx.lineTo(lineEndX, lineEndY);
-    ctx.stroke();
+
+
+const matrixMult = (matrix, vector, mag) => {
+    const newCoords = [];
+
+    for(let i = 0; i < mag; i++){
+        let sum = 0;
+        for(let j = 0; j < mag; j++){
+            sum += matrix[i][j] * vector[j]
+        }
+        newCoords.push(sum);
+    }
+    
+    for(let i = 0; i < mag; i++){
+        vector[i] = newCoords[i]
+    };
 }
 
-const rotation2d = (vector, angle) => {
-    oldX = vector.x - originX;
-    oldY = vector.y - originY;
-    newX = oldX * Math.cos(angle) - oldY * Math.sin(angle);
-    newY = oldX * Math.sin(angle) + oldY * Math.cos(angle);
-    vector.x = newX + originX;
-    vector.y = newY + originY;
-}
-
-const badZRotations = (vector, angle) => {
-    oldZ = vector.z - 450;
-    oldY = vector.y - originY;
-    newZ = oldZ * Math.cos(angle) - oldY * Math.sin(angle);
-    newY = oldZ * Math.sin(angle) + oldY * Math.cos(angle);
-    vector.z = newZ + 450;
-    vector.y = newY + originY;
+const wAdjust = (vector) => {
+    deltaW = vector[3] - camera4d[3];
+    newX = (projectionVect[2] / deltaW) * vector[0];
+    newY = (projectionVect[2] / deltaW) * vector[1];
+    newZ = (projectionVect[2] / deltaW) * vector[2];
+    return [newX, newY, newZ];
 }
 
 const zAdjust = (vector) => {
-    // deltaZ = (vector.z + (vector.y + vector.x)) + (vector.y - vector.x);
-    // deltaY = (vector.z + (vector.y + vector.x)) - (vector.y - vector.x);
-    // deltaX = (vector.y + vector.x) - vector.z;
-    deltaX = vector.x - camaraVect.x;
-    deltaY = vector.y - camaraVect.y;
-    newX = (eyeDist / vector.z) * deltaX;
-    newY = (eyeDist / vector.z) * deltaY;
-    // newX = (eyeDist / vector.z) * vector.x;
-    // newY = (eyeDist / vector.z) * vector.y;
-    return new Vector2(newX, newY);
+    deltaZ = vector[2] - cameraVect[2];
+    newX = (projectionVect[2] / deltaZ) * vector[0];
+    newY = (projectionVect[2] / deltaZ) * vector[1];
+    return [newX, newY, vector[2]];
+}
+
+const centerImage = (vecArr) => {
+    for(let i = 0; i < vecArr.length; i++){
+        vecArr[i][0] += canvas.width / 2;
+        vecArr[i][1] += canvas.height / 2;
+    }
+}
+
+const drawLine = (startVect, endVect) => {
+    ctx.beginPath();
+    let lineWidth;
+    ctx.lineWidth = 5;
+    ctx.moveTo(startVect[0], startVect[1]);
+    ctx.lineTo(endVect[0], endVect[1]);
+    ctx.stroke();
+}
+
+const drawFace = (vectArr, startVect) => {
+    drawLine(vectArr[startVect], vectArr[startVect+1]);
+    drawLine(vectArr[startVect+1], vectArr[startVect+3]);
+    drawLine(vectArr[startVect+3], vectArr[startVect+2]);
+    drawLine(vectArr[startVect+2], vectArr[startVect]);
+}
+
+const drawShape = (vectArr) => {
+    // "inner" cube
+    drawFace(vectArr, 0);
+    drawFace(vectArr, 4);
+    for(let i = 0; i < vectArr.length-12; i++){
+        drawLine(vectArr[i], vectArr[i+4]);
+    }
+
+    // "outer cube"
+    drawFace(vectArr, 8);
+    drawFace(vectArr, 12);
+    for(let i = 8; i < vectArr.length-4; i++){
+        drawLine(vectArr[i], vectArr[i+4]);
+    }
+
+    // cube connections
+    for(let i = 0; i < vectArr.length-8; i++){
+        drawLine(vectArr[i], vectArr[i+8]);
+    }
 }
 
 const draw = () => {
     ctx.clearRect(0,0, canvas.width, canvas.height);
+    projectionVect[2] = -275;
+    cameraVect[2] = -450;
+    surfce4d[3] = -150;
+    camera4d[3] = -550;
+    // projOut.innerHTML = projSlider.value;
+    // camOut.innerHTML = camSlider.value;
 
-    const adjVecs = [];
+    const xyzVects = [];
+    const xyVecs = [];
 
-    for(let i = 0; i < vectors3d.length; i++){
-        adjVecs.push(zAdjust(vectors3d[i]))
+    for(let i = 0; i < vectors.length; i++){
+        xyzVects.push(wAdjust(vectors[i]))
+
+        xyVecs.push(zAdjust(xyzVects[i]))
     }
 
-    for(let i = 0; i < adjVecs.length; i++){
-        adjVecs[i].x += 150;
-        adjVecs[i].y += 150;
+    centerImage(xyVecs);
+
+    drawShape(xyVecs);
+
+    
+
+    for(let i = 0; i < vectors.length; i++){
+        matrixMult(xRotationMatrix(xSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(yRotationMatrix(ySlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(zRotationMatrix(zSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(xyRotationMatrix(xySlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(yzRotationMatrix(yzSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(xzRotationMatrix(xzSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(xwRotationMatrix(xwSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(ywRotationMatrix(ywSlider.value*rotationThrottle), vectors[i], 4);
+        matrixMult(zwRotationMatrix(zwSlider.value*rotationThrottle), vectors[i], 4);
+        
     }
 
-    for(let i = 0; i < adjVecs.length-4; i++){
-        if (i != adjVecs.length-5) drawLine(adjVecs[i].x, adjVecs[i].y, adjVecs[i+1].x, adjVecs[i+1].y);
-        else drawLine(adjVecs[i].x, adjVecs[i].y, adjVecs[0].x, adjVecs[0].y);
-    }
-    for(let i = 4; i < adjVecs.length; i++){
-        if (i != adjVecs.length-1) drawLine(adjVecs[i].x, adjVecs[i].y, adjVecs[i+1].x, adjVecs[i+1].y);
-        else drawLine(adjVecs[i].x, adjVecs[i].y, adjVecs[4].x, adjVecs[4].y);
-    }
-    for(let i = 0; i < adjVecs.length-4; i++){
-        drawLine(adjVecs[i].x, adjVecs[i].y, adjVecs[i+4].x, adjVecs[i+4].y);
-    }
-
-    for(let i = 0; i < vectors3d.length; i++){
-        // rotation2d(vectors3d[i], .01);
-        // badZRotations(vectors3d[i], .01);
-    }
-
-    // for(let i = 0; i < vectors3d.length; i++){
-    //     vectors3d[i].x++;
-    // }
-
-    // for(let i = 0; i < vectors2d.length; i ++){
-    //     if (i != vectors2d.length-1) drawLine(vectors2d[i].x, vectors2d[i].y, vectors2d[i+1].x, vectors2d[i+1].y);
-    //     else drawLine(vectors2d[i].x, vectors2d[i].y, vectors2d[0].x, vectors2d[0].y);
-    // }
-
-    // for(let i = 0; i < vectors2d.length; i++){
-    //     rotation2d(vectors2d[i], .03)
-    // }
+    // console.log(xyVecs);
 
 }
+
+// draw();
 
 drawLoop();
