@@ -26,7 +26,7 @@ const xwSlider = document.getElementById("xwRot");
 const ywSlider = document.getElementById("ywRot");
 const zwSlider = document.getElementById("zwRot");
 
-const rotationThrottle = .002;
+const rotationThrottle = .1;
 const edgeLangth = 175;
 
 const projSlider = document.getElementById("proj");
@@ -47,6 +47,21 @@ const surfce4d = [0, 0, 0, 0];
 const cameraVect = [0, 0, 0];
 const camera4d = [0, 0, 0, 0];
 
+const toRadians = (degrees) => {
+	return degrees * Math.PI / 180;
+}
+
+let xAngle = 0;
+let yAngle = 0;
+let zAngle = 0;
+let wAngle = 0;
+
+const angleClamp = (angle) => {
+    if (angle > 360) return angle - 360;
+    if (angle < 0) return angle + 360;
+    return angle;
+}
+
 const makeVecArray = (edge, depth) => {
     const output = new Array(Math.pow(2, depth));
 
@@ -62,8 +77,6 @@ const makeVecArray = (edge, depth) => {
     
     return output;
 }
-
-const vectors = makeVecArray(edgeLangth, 4);
 
 // vectors = [
 //     [-edgeLangth, -edgeLangth, -edgeLangth, -edgeLangth],
@@ -92,8 +105,6 @@ const drawLoop = () => {
     }, 16)
 }
 
-
-
 const matrixMult = (matrix, vector, mag) => {
     const newCoords = [];
 
@@ -108,6 +119,8 @@ const matrixMult = (matrix, vector, mag) => {
     for(let i = 0; i < mag; i++){
         vector[i] = newCoords[i]
     };
+
+    // return newCoords;
 }
 
 const wAdjust = (vector) => {
@@ -177,6 +190,18 @@ const draw = () => {
     // projOut.innerHTML = projSlider.value;
     // camOut.innerHTML = camSlider.value;
 
+    xAngle += xSlider.value*rotationThrottle;
+    yAngle += ySlider.value*rotationThrottle;
+    zAngle += zSlider.value*rotationThrottle;
+
+    const vectors = makeVecArray(edgeLangth, 4);
+
+    for(let i = 0; i < vectors.length; i++){
+        matrixMult(xRotationMatrix(toRadians(xAngle)), vectors[i], 4);
+        matrixMult(yRotationMatrix(toRadians(yAngle)), vectors[i], 4);
+        matrixMult(zRotationMatrix(toRadians(zAngle)), vectors[i], 4);
+    }
+
     const xyzVects = [];
     const xyVecs = [];
 
@@ -190,20 +215,22 @@ const draw = () => {
 
     drawShape(xyVecs);
 
-    
+    xReadout.value = Math.floor(angleClamp(xAngle));
+    yReadout.value = Math.floor(angleClamp(yAngle));
+    zReadout.value = Math.floor(angleClamp(zAngle));
 
-    for(let i = 0; i < vectors.length; i++){
-        matrixMult(xRotationMatrix(xSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(yRotationMatrix(ySlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(zRotationMatrix(zSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(xyRotationMatrix(xySlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(yzRotationMatrix(yzSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(xzRotationMatrix(xzSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(xwRotationMatrix(xwSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(ywRotationMatrix(ywSlider.value*rotationThrottle), vectors[i], 4);
-        matrixMult(zwRotationMatrix(zwSlider.value*rotationThrottle), vectors[i], 4);
-        
-    }
+
+    // for(let i = 0; i < vectors.length; i++){
+    //     matrixMult(xRotationMatrix(xSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(yRotationMatrix(ySlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(zRotationMatrix(zSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(xyRotationMatrix(xySlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(yzRotationMatrix(yzSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(xzRotationMatrix(xzSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(xwRotationMatrix(xwSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(ywRotationMatrix(ywSlider.value*rotationThrottle), vectors[i], 4);
+    //     matrixMult(zwRotationMatrix(zwSlider.value*rotationThrottle), vectors[i], 4);
+    // }
 
     // console.log(xyVecs);
 
