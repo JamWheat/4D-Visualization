@@ -8,6 +8,13 @@ const yReadout = document.getElementById("Y");
 const zReadout = document.getElementById("Z");
 const manualAngle = document.getElementById("manual-angle");
 
+let paused = false;
+const pausePlayBtn = document.getElementById("pause-play");
+pausePlayBtn.addEventListener("click", () => {
+    paused = paused ? false : true;
+    pausePlayBtn.value = paused ? "Play" : "Pause";
+});
+
 const xSlider = document.getElementById("xRot");
 const ySlider = document.getElementById("yRot");
 const zSlider = document.getElementById("zRot");
@@ -78,7 +85,11 @@ const vectors = makeVecArray(edgeLangth, 4);
 // ]
 
 const drawLoop = () => {
-    setInterval(draw, 16)
+    setInterval(() => {
+        if (!paused){
+            draw();
+        }
+    }, 16)
 }
 
 
