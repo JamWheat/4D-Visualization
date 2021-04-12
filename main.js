@@ -3,6 +3,11 @@ const ctx = canvas.getContext("2d");
 ctx.lineCap = "round";
 console.log(ctx)
 
+const xReadout = document.getElementById("X");
+const yReadout = document.getElementById("Y");
+const zReadout = document.getElementById("Z");
+const manualAngle = document.getElementById("manual-angle");
+
 const xSlider = document.getElementById("xRot");
 const ySlider = document.getElementById("yRot");
 const zSlider = document.getElementById("zRot");
@@ -22,6 +27,12 @@ const projOut = document.getElementById("projOut");
 
 const camSlider = document.getElementById("cam");
 const camOut = document.getElementById("camOut");
+
+manualAngle.addEventListener("click", clicked);
+
+function clicked(){
+    console.log("clicked");
+}
 
 const projectionVect = [0, 0, 0];
 const surfce4d = [0, 0, 0, 0];
@@ -112,8 +123,7 @@ const centerImage = (vecArr) => {
 
 const drawLine = (startVect, endVect) => {
     ctx.beginPath();
-    let lineWidth;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 2;
     ctx.moveTo(startVect[0], startVect[1]);
     ctx.lineTo(endVect[0], endVect[1]);
     ctx.stroke();
