@@ -8,12 +8,33 @@ const yReadout = document.getElementById("Y");
 const zReadout = document.getElementById("Z");
 const manualAngle = document.getElementById("manual-angle");
 
+
+
 let paused = false;
+
+const pausePlay = () => {
+    if(paused){
+        xReadout.disabled = true;
+        yReadout.disabled = true;
+        zReadout.disabled = true;
+        // angles[0] = xReadout.value;
+        // angles[1] = yReadout.value;
+        // angles[2] = zReadout.value;
+        pausePlayBtn.value = "Pause";
+        paused = false;
+    } else {
+        xReadout.disabled = false;
+        yReadout.disabled = false;
+        zReadout.disabled = false;
+        pausePlayBtn.value = "Play";
+        paused = true;
+    }
+}
+
 const pausePlayBtn = document.getElementById("pause-play");
-pausePlayBtn.addEventListener("click", () => {
-    paused = paused ? false : true;
-    pausePlayBtn.value = paused ? "Play" : "Pause";
-});
+pausePlayBtn.addEventListener("click", pausePlay);
+
+
 
 const xSlider = document.getElementById("xRot");
 const ySlider = document.getElementById("yRot");
@@ -54,6 +75,12 @@ const toRadians = (degrees) => {
 
 const angles = [0, 30, 0, 0, 0, 0]
 
+// const updateAngleReadouts = () => {
+//     xReadout.value = Math.floor(angles[0]);
+//     yReadout.value = Math.floor(angles[1]);
+//     zReadout.value = Math.floor(angles[2]);
+// }
+
 // let xAngle = 0;
 // let yAngle = 30;
 // let zAngle = 0;
@@ -62,8 +89,8 @@ const angles = [0, 30, 0, 0, 0, 0]
 // let zwAngle = 0;
 
 const angleClamp = (angle) => {
-    if (angle > 360) return angle - 360;
-    if (angle < 0) return angle + 360;
+    if (angle > 360) return angle -= 360;
+    if (angle < 0) return angle += 360;
     return angle;
 }
 
@@ -194,7 +221,10 @@ const draw = () => {
     const angleAdjusts = [xSlider.value, ySlider.value, zSlider.value, xwSlider.value, ywSlider.value, zwSlider.value];
 
     for(let i = 0; i < angles.length; i++){
-        angles[i] += angleAdjusts[i]*rotationThrottle;
+        angle = angles[i];
+        angle += angleAdjusts[i]*rotationThrottle;
+        angle = angleClamp(angle);
+        angles[i] = angle;
     }
 
     // xAngle += xSlider.value*rotationThrottle;
@@ -228,9 +258,11 @@ const draw = () => {
 
     drawShape(xyVecs);
 
-    xReadout.value = Math.floor(angleClamp(angles[0]));
-    yReadout.value = Math.floor(angleClamp(angles[1]));
-    zReadout.value = Math.floor(angleClamp(angles[2]));
+    // updateAngleReadouts();
+
+    xReadout.value = Math.floor(angles[0]);
+    yReadout.value = Math.floor(angles[1]);
+    zReadout.value = Math.floor(angles[2]);
 
 
     // for(let i = 0; i < vectors.length; i++){
