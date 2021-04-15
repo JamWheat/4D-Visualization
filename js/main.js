@@ -52,12 +52,14 @@ const toRadians = (degrees) => {
 	return degrees * Math.PI / 180;
 }
 
-let xAngle = 0;
-let yAngle = 30;
-let zAngle = 0;
-let xwAngle = 0;
-let ywAngle = 0;
-let zwAngle = 0;
+const angles = [0, 30, 0, 0, 0, 0]
+
+// let xAngle = 0;
+// let yAngle = 30;
+// let zAngle = 0;
+// let xwAngle = 0;
+// let ywAngle = 0;
+// let zwAngle = 0;
 
 const angleClamp = (angle) => {
     if (angle > 360) return angle - 360;
@@ -189,22 +191,28 @@ const draw = () => {
     // projOut.innerHTML = projSlider.value;
     // camOut.innerHTML = camSlider.value;
 
-    xAngle += xSlider.value*rotationThrottle;
-    yAngle += ySlider.value*rotationThrottle;
-    zAngle += zSlider.value*rotationThrottle;
-    xwAngle += xwSlider.value*rotationThrottle;
-    ywAngle += ywSlider.value*rotationThrottle;
-    zwAngle += zwSlider.value*rotationThrottle;
+    const angleAdjusts = [xSlider.value, ySlider.value, zSlider.value, xwSlider.value, ywSlider.value, zwSlider.value];
+
+    for(let i = 0; i < angles.length; i++){
+        angles[i] += angleAdjusts[i]*rotationThrottle;
+    }
+
+    // xAngle += xSlider.value*rotationThrottle;
+    // yAngle += ySlider.value*rotationThrottle;
+    // zAngle += zSlider.value*rotationThrottle;
+    // xwAngle += xwSlider.value*rotationThrottle;
+    // ywAngle += ywSlider.value*rotationThrottle;
+    // zwAngle += zwSlider.value*rotationThrottle;
 
     const vectors = makeVecArray(edgeLangth, 4);
 
     for(let i = 0; i < vectors.length; i++){
-        matrixMult(xwRotationMatrix(toRadians(xwAngle)), vectors[i], 4);
-        matrixMult(ywRotationMatrix(toRadians(ywAngle)), vectors[i], 4);
-        matrixMult(zwRotationMatrix(toRadians(zwAngle)), vectors[i], 4);
-        matrixMult(xRotationMatrix(toRadians(xAngle)), vectors[i], 4);
-        matrixMult(yRotationMatrix(toRadians(yAngle)), vectors[i], 4);
-        matrixMult(zRotationMatrix(toRadians(zAngle)), vectors[i], 4);
+        matrixMult(xwRotationMatrix(toRadians(angles[3])), vectors[i], 4);
+        matrixMult(ywRotationMatrix(toRadians(angles[4])), vectors[i], 4);
+        matrixMult(zwRotationMatrix(toRadians(angles[5])), vectors[i], 4);
+        matrixMult(xRotationMatrix(toRadians(angles[0])), vectors[i], 4);
+        matrixMult(yRotationMatrix(toRadians(angles[1])), vectors[i], 4);
+        matrixMult(zRotationMatrix(toRadians(angles[2])), vectors[i], 4);
     }
 
     const xyzVects = [];
@@ -220,9 +228,9 @@ const draw = () => {
 
     drawShape(xyVecs);
 
-    xReadout.value = Math.floor(angleClamp(xAngle));
-    yReadout.value = Math.floor(angleClamp(yAngle));
-    zReadout.value = Math.floor(angleClamp(zAngle));
+    xReadout.value = Math.floor(angleClamp(angles[0]));
+    yReadout.value = Math.floor(angleClamp(angles[1]));
+    zReadout.value = Math.floor(angleClamp(angles[2]));
 
 
     // for(let i = 0; i < vectors.length; i++){
