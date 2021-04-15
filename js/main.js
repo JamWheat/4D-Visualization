@@ -18,10 +18,11 @@ pausePlayBtn.addEventListener("click", () => {
 const xSlider = document.getElementById("xRot");
 const ySlider = document.getElementById("yRot");
 const zSlider = document.getElementById("zRot");
+// const wSlider = document.getElementById("wRot");
 
-const xySlider = document.getElementById("xyRot");
-const yzSlider = document.getElementById("yzRot");
-const xzSlider = document.getElementById("xzRot");
+// const xySlider = document.getElementById("xyRot");
+// const yzSlider = document.getElementById("yzRot");
+// const xzSlider = document.getElementById("xzRot");
 const xwSlider = document.getElementById("xwRot");
 const ywSlider = document.getElementById("ywRot");
 const zwSlider = document.getElementById("zwRot");
@@ -41,20 +42,22 @@ function clicked(){
     console.log("clicked");
 }
 
-const projectionVect = [0, 0, 0];
-const surfce4d = [0, 0, 0, 0];
+const surface3d = [0, 0, -275];
+const surface4d = [0, 0, 0, -250];
 
-const cameraVect = [0, 0, 0];
-const camera4d = [0, 0, 0, 0];
+const camera3d = [0, 0, -450];
+const camera4d = [0, 0, 0, -550];
 
 const toRadians = (degrees) => {
 	return degrees * Math.PI / 180;
 }
 
 let xAngle = 0;
-let yAngle = 0;
+let yAngle = 30;
 let zAngle = 0;
-let wAngle = 0;
+let xwAngle = 0;
+let ywAngle = 0;
+let zwAngle = 0;
 
 const angleClamp = (angle) => {
     if (angle > 360) return angle - 360;
@@ -125,16 +128,16 @@ const matrixMult = (matrix, vector, mag) => {
 
 const wAdjust = (vector) => {
     deltaW = vector[3] - camera4d[3];
-    newX = (projectionVect[2] / deltaW) * vector[0];
-    newY = (projectionVect[2] / deltaW) * vector[1];
-    newZ = (projectionVect[2] / deltaW) * vector[2];
+    newX = (surface4d[3] / deltaW) * vector[0];
+    newY = (surface4d[3] / deltaW) * vector[1];
+    newZ = (surface4d[3] / deltaW) * vector[2];
     return [newX, newY, newZ];
 }
 
 const zAdjust = (vector) => {
-    deltaZ = vector[2] - cameraVect[2];
-    newX = (projectionVect[2] / deltaZ) * vector[0];
-    newY = (projectionVect[2] / deltaZ) * vector[1];
+    deltaZ = vector[2] - camera3d[2];
+    newX = (surface3d[2] / deltaZ) * vector[0];
+    newY = (surface3d[2] / deltaZ) * vector[1];
     return [newX, newY, vector[2]];
 }
 
@@ -183,20 +186,22 @@ const drawShape = (vectArr) => {
 
 const draw = () => {
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    projectionVect[2] = -275;
-    cameraVect[2] = -450;
-    surfce4d[3] = -150;
-    camera4d[3] = -550;
     // projOut.innerHTML = projSlider.value;
     // camOut.innerHTML = camSlider.value;
 
     xAngle += xSlider.value*rotationThrottle;
     yAngle += ySlider.value*rotationThrottle;
     zAngle += zSlider.value*rotationThrottle;
+    xwAngle += xwSlider.value*rotationThrottle;
+    ywAngle += ywSlider.value*rotationThrottle;
+    zwAngle += zwSlider.value*rotationThrottle;
 
     const vectors = makeVecArray(edgeLangth, 4);
 
     for(let i = 0; i < vectors.length; i++){
+        matrixMult(xwRotationMatrix(toRadians(xwAngle)), vectors[i], 4);
+        matrixMult(ywRotationMatrix(toRadians(ywAngle)), vectors[i], 4);
+        matrixMult(zwRotationMatrix(toRadians(zwAngle)), vectors[i], 4);
         matrixMult(xRotationMatrix(toRadians(xAngle)), vectors[i], 4);
         matrixMult(yRotationMatrix(toRadians(yAngle)), vectors[i], 4);
         matrixMult(zRotationMatrix(toRadians(zAngle)), vectors[i], 4);
