@@ -177,6 +177,13 @@ const centerImage = (vecArr) => {
     }
 }
 
+const drawDot = (vector) => {
+    ctx.beginPath();
+    ctx.arc(vector[0], vector[1], (-vector[2]+500)/100, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.stroke();
+}
+
 const drawLine = (startVect, endVect) => {
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -221,10 +228,12 @@ const draw = () => {
     const angleAdjusts = [xSlider.value, ySlider.value, zSlider.value, xwSlider.value, ywSlider.value, zwSlider.value];
 
     for(let i = 0; i < angles.length; i++){
-        angle = angles[i];
-        angle += angleAdjusts[i]*rotationThrottle;
-        angle = angleClamp(angle);
-        angles[i] = angle;
+        // angle = angles[i];
+        // angle += angleAdjusts[i]*rotationThrottle;
+        // angle = angleClamp(angle);
+        // angles[i] = angle;
+        throttledAdjustment = angleAdjusts[i]*rotationThrottle;
+        angles[i] = (angles[i] + throttledAdjustment + 360) % 360;
     }
 
     // xAngle += xSlider.value*rotationThrottle;
@@ -257,6 +266,10 @@ const draw = () => {
     centerImage(xyVecs);
 
     drawShape(xyVecs);
+
+    for(let i = 0; i < xyVecs.length; i++){
+        drawDot(xyVecs[i]);
+    }
 
     // updateAngleReadouts();
 
