@@ -88,11 +88,11 @@ const angles = [0, 30, 0, 0, 0, 0]
 // let ywAngle = 0;
 // let zwAngle = 0;
 
-const angleClamp = (angle) => {
-    if (angle > 360) return angle -= 360;
-    if (angle < 0) return angle += 360;
-    return angle;
-}
+// const angleClamp = (angle) => {
+//     if (angle > 360) return angle -= 360;
+//     if (angle < 0) return angle += 360;
+//     return angle;
+// }
 
 const makeVecArray = (edge, depth) => {
     const output = new Array(Math.pow(2, depth));
